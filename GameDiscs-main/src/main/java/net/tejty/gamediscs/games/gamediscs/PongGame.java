@@ -15,17 +15,17 @@ public class PongGame extends Game {
     private Sprite player = new Sprite(
             new Vec2(10, HEIGHT / 2 - 10),
             new Vec2(5, 20),
-            new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+            new ResourceLocation("minecraft:textures/block/white_concrete.png")
     );
     private Sprite oponent = new Sprite(
             new Vec2(WIDTH - 15, HEIGHT / 2 - 10),
             new Vec2(5, 20),
-            new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+            new ResourceLocation("textures/block/white_concrete.png")
     );
     private Sprite ball = new Sprite(
             new Vec2(WIDTH / 2 - 2, HEIGHT / 2 - 2),
             new Vec2(4, 4),
-            new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+            new ResourceLocation("textures/block/white_concrete.png")
     );
     private Sprite numberRenderer = new Sprite(
             new Vec2(0, 0),
@@ -48,24 +48,23 @@ public class PongGame extends Game {
     }
 
     @Override
-    public void prepare() {
+    public synchronized void prepare() {
         super.prepare();
-
         player = new Sprite(
                 new Vec2(10, HEIGHT / 2 - 10),
                 new Vec2(5, 20),
-                new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+                new ResourceLocation("minecraft:textures/block/white_concrete.png")
         );
         oponent = new Sprite(
                 new Vec2(WIDTH - 15, HEIGHT / 2 - 10),
                 new Vec2(5, 20),
-                new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+                new ResourceLocation("minecraft:textures/block/white_concrete.png")
         );
         ballSpeed = 4;
         ball = new Sprite(
                 new Vec2(WIDTH / 2 - 2, HEIGHT / 2 - 2),
                 new Vec2(4, 4),
-                new ResourceLocation("minecraft", "textures/block/white_concrete.png")
+                new ResourceLocation("minecraft:textures/block/white_concrete.png")
         ).setVelocity(new Vec2((random.nextInt(2) * 2 - 1) * 2, (random.nextInt(2) * 2 - 1) * 2));
         oponentScore = 0;
     }
@@ -78,13 +77,13 @@ public class PongGame extends Game {
     }
 
     @Override
-    public void start() {
+    public synchronized void start() {
         super.start();
         ballTimer = 60;
     }
 
     @Override
-    public void tick() {
+    public synchronized void tick() {
         super.tick();
         if (ballTimer > 0) {
             ballTimer--;
@@ -92,29 +91,25 @@ public class PongGame extends Game {
     }
 
     @Override
-    public void gameTick() {
+    public synchronized void gameTick() {
         super.gameTick();
         if (ticks % 20 == 0) {
             ballSpeed += 0.1f;
         }
-
         if (controls.isButtonDown(Button.UP)) {
             player.moveBy(VecUtil.VEC_UP.scale(SPEED));
         }
         if (controls.isButtonDown(Button.DOWN)) {
             player.moveBy(VecUtil.VEC_DOWN.scale(SPEED));
         }
-
         if (ball.getCenterPos().y < oponent.getCenterPos().y) {
             oponent.moveBy(VecUtil.VEC_UP.scale(SPEED));
         }
         if (ball.getCenterPos().y > oponent.getCenterPos().y) {
             oponent.moveBy(VecUtil.VEC_DOWN.scale(SPEED));
         }
-
         player.setY(Math.min(Math.max(player.getY(), 0), HEIGHT - player.getHeight()));
         oponent.setY(Math.min(Math.max(oponent.getY(), 0), HEIGHT - oponent.getHeight()));
-
         if (ballTimer <= 0) {
             ball.moveBy(new Vec2(ball.getVelocity().x, 0));
             if (ball.getX() < 0) {
@@ -126,23 +121,23 @@ public class PongGame extends Game {
                 soundPlayer.playPoint();
                 resetBall();
             }
-            ball.moveBy(new Vec2(0, ball.getVelocity().y));
-            if (ball.getY() < 0 || ball.getY() + ball.getHeight() > HEIGHT) {
-                ball.moveBy(new Vec2(0, -ball.getVelocity().y));
-                ball.setVelocity(new Vec2(ball.getVelocity().x, -ball.getVelocity().y));
-                soundPlayer.playJump();
-            }
-
-            if (ball.isTouching(player)) {
-                ball.setVelocity(ball.getCenterPos().add(player.getCenterPos().add(new Vec2(-2, 0)).negated()).normalized().scale(ballSpeed));
-                soundPlayer.playJump();
-            }
-            if (ball.isTouching(oponent)) {
-                ball.setVelocity(ball.getCenterPos().add(oponent.getCenterPos().add(new Vec2(2, 0)).negated()).normalized().scale(ballSpeed));
-                soundPlayer.playJump();
+            if (ballTimer <= 0) {
+                ball.moveBy(new Vec2(0, ball.getVelocity().y));
+                if (ball.getY() < 0 || ball.getY() + ball.getHeight() > HEIGHT) {
+                    ball.moveBy(new Vec2(0, -ball.getVelocity().y));
+                    ball.setVelocity(new Vec2(ball.getVelocity().x, -ball.getVelocity().y));
+                    soundPlayer.playJump();
+                }
+                if (ball.isTouching(player)) {
+                    ball.setVelocity(ball.getCenterPos().add(player.getCenterPos().add(new Vec2(-2, 0)).negated()).normalized().scale(ballSpeed));
+                    soundPlayer.playJump();
+                }
+                if (ball.isTouching(oponent)) {
+                    ball.setVelocity(ball.getCenterPos().add(oponent.getCenterPos().add(new Vec2(2, 0)).negated()).normalized().scale(ballSpeed));
+                    soundPlayer.playJump();
+                }
             }
         }
-
         if (score >= 10) {
             win();
         }
@@ -152,38 +147,60 @@ public class PongGame extends Game {
     }
 
     @Override
-    public void die() {
+    public synchronized void die() {
         super.die();
     }
 
     @Override
-    public void render(PoseStack graphics, int posX, int posY) {
+    public synchronized void render(PoseStack graphics, int posX, int posY) {
         super.render(graphics, posX, posY);
-
         player.render(graphics, posX, posY);
         oponent.render(graphics, posX, posY);
         ball.render(graphics, posX, posY);
         renderParticles(graphics, posX, posY);
-
-        renderScore(graphics);
+        if (score < 10) {
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(score);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 - numberRenderer.getWidth() - 4, 4));
+            numberRenderer.render(graphics, posX, posY);
+        }
+        else {
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(1);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 - numberRenderer.getWidth() * 2 - 4 * 2, 4));
+            numberRenderer.render(graphics, posX, posY);
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(0);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 - numberRenderer.getWidth() - 4, 4));
+            numberRenderer.render(graphics, posX, posY);
+        }
+        if (oponentScore < 10) {
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(oponentScore);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 + 4, 4));
+            numberRenderer.render(graphics, posX, posY);
+        }
+        else {
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(1);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 + 4, 4));
+            numberRenderer.render(graphics, posX, posY);
+            if (numberRenderer.getImage() instanceof MultiImage image) {
+                image.setImage(0);
+            }
+            numberRenderer.setPos(new Vec2(WIDTH / 2 + numberRenderer.getWidth() + 4 * 2, 4));
+            numberRenderer.render(graphics, posX, posY);
+        }
         renderOverlay(graphics, posX, posY);
     }
 
-    private void renderScore(PoseStack graphics) {
-        renderNumber(graphics, score, WIDTH / 2 - numberRenderer.getWidth() - 4, 4);
-        renderNumber(graphics, oponentScore, WIDTH / 2 + 4, 4);
-    }
-
-    private void renderNumber(PoseStack graphics, int value, float posX, float posY) {
-        if (numberRenderer.getImage() instanceof MultiImage image) {
-            image.setImage(value);
-        }
-        numberRenderer.setPos(new Vec2(posX, posY));
-        numberRenderer.render(graphics, 0, 0);
-    }
-
     @Override
-    public void buttonDown(Button button) {
+    public synchronized void buttonDown(Button button) {
         super.buttonDown(button);
     }
 

@@ -1,5 +1,6 @@
 package net.tejty.gamediscs.games.util;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -139,7 +140,7 @@ public class Game {
 
     public synchronized void render(PoseStack poseStack, int posX, int posY) {
         if (getBackground() != null) {
-            Minecraft.getInstance().getTextureManager().bindForSetup(getBackground());
+            RenderSystem.setShaderTexture(0, getBackground());
             GuiComponent.blit(poseStack, posX, posY, 0, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
         }
         renderOverlay(poseStack, posX, posY);
@@ -153,7 +154,7 @@ public class Game {
                 font.draw(poseStack, Component.translatable("gui.gamingconsole.press_any_key").getString(), posX + (WIDTH - font.width(Component.translatable("gui.gamingconsole.press_any_key").getString())) / 2, posY + HEIGHT - font.lineHeight - 2 - (ticks % 40 <= 20 ? 0 : 1), 0xFFFFFF);
             }
             if (stage == GameStage.DIED || stage == GameStage.WON) {
-                Minecraft.getInstance().getTextureManager().bindForSetup(new ResourceLocation(GameDiscsMod.MOD_ID, "textures/gui/score_board.png"));
+                RenderSystem.setShaderTexture(0, new ResourceLocation(GameDiscsMod.MOD_ID, "textures/gui/score_board.png"));
                 GuiComponent.blit(poseStack, posX, posY, 0, 0, 0, 140, 100, 140, 100);
                 Component component = stage == GameStage.DIED ? Component.translatable("gui.gamingconsole.died").withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED) : Component.translatable("gui.gamingconsole.won").withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_GREEN);
                 font.draw(poseStack, component.getString(), posX + (WIDTH - font.width(component.getString())) / 2, posY + 29, Objects.requireNonNull(component.getStyle().getColor()).getValue());
@@ -170,7 +171,7 @@ public class Game {
             }
         } else {
             if (showScoreBox() && showScore()) {
-                Minecraft.getInstance().getTextureManager().bindForSetup(new ResourceLocation(GameDiscsMod.MOD_ID, "textures/gui/score_box.png"));
+                RenderSystem.setShaderTexture(0, new ResourceLocation(GameDiscsMod.MOD_ID, "textures/gui/score_box.png"));
                 GuiComponent.blit(poseStack, posX, posY, 0, 0, 0, 140, 100, 140, 100);
             }
             if (showScore()) {
