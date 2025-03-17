@@ -3,12 +3,12 @@ package net.tejty.gamediscs.games.graphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AnimatedImage extends MultiImage {
     private final int duration;
     private int timer = 0;
+
 
     public AnimatedImage(List<Image> images, int duration) {
         super(images);
@@ -21,7 +21,8 @@ public class AnimatedImage extends MultiImage {
     }
 
     public AnimatedImage(ResourceLocation file, int fileWidth, int fileHeight, int frames, int duration) {
-        this(file, fileWidth, fileHeight, fromFile(fileWidth, fileHeight, frames), duration);
+        super(file, fileWidth, fileHeight, generateRects(fileWidth, fileHeight, frames));
+        this.duration = duration;
     }
 
     public AnimatedImage tick() {
@@ -32,6 +33,7 @@ public class AnimatedImage extends MultiImage {
             } else {
                 setImage(current() + 1);
             }
+            timer = 0;
         }
         return this;
     }

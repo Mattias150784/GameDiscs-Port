@@ -1,5 +1,6 @@
 package net.tejty.gamediscs.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -11,6 +12,7 @@ import net.tejty.gamediscs.GameDiscsMod;
 import net.tejty.gamediscs.games.util.Game;
 import net.tejty.gamediscs.games.controls.Button;
 import net.tejty.gamediscs.item.custom.GameDiscItem;
+
 import javax.swing.Timer;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +76,7 @@ public class GamingConsoleScreen extends Screen {
     @Override
     public void renderBackground(PoseStack poseStack) {
         super.renderBackground(poseStack);
-        this.minecraft.getTextureManager().bindForSetup(BACKGROUD);
+        RenderSystem.setShaderTexture(0, BACKGROUD);
         this.blit(poseStack, getConsoleX(), getConsoleY(), 0, 0, CONSOLE_WIDTH, CONSOLE_HEIGHT);
     }
 
@@ -198,41 +200,8 @@ public class GamingConsoleScreen extends Screen {
     }
 
     @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        boolean flag = false;
-        if (game != null) {
-            switch (pKeyCode) {
-                case W -> {
-                    game.controls.setButton(Button.UP, false);
-                    flag = true;
-                }
-                case S -> {
-                    game.controls.setButton(Button.DOWN, false);
-                    flag = true;
-                }
-                case A -> {
-                    game.controls.setButton(Button.LEFT, false);
-                    flag = true;
-                }
-                case D -> {
-                    game.controls.setButton(Button.RIGHT, false);
-                    flag = true;
-                }
-                case SPACE -> {
-                    game.controls.setButton(Button.BUTTON1, false);
-                    flag = true;
-                }
-                case ENTER -> {
-                    game.controls.setButton(Button.BUTTON2, false);
-                    flag = true;
-                }
-            }
-        }
-        return (super.keyPressed(pKeyCode, pScanCode, pModifiers) || flag);
-    }
-
-    @Override
-    public void onClose() {
+    public
+    void onClose() {
         super.onClose();
         game = null;
     }
